@@ -298,7 +298,7 @@ class BidirectionalCrossAttention(nn.Module):
         context,
         mask = None,
         context_mask = None,
-        return_attn = False,
+        return_attn = True,
         rel_pos_bias = None,
         matrix_mask = None
     ):
@@ -370,6 +370,6 @@ class BidirectionalCrossAttention(nn.Module):
         context_out = self.context_to_out(context_out)
 
         if return_attn:
-            return out, context_out, attn, context_attn
+            return out, context_out, attn, context_attn, sim
 
         return out, context_out

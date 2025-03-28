@@ -543,7 +543,7 @@ if __name__ == "__main__":
 
     # logger.info("START TRAINING")
     xla.launch(
-                _mp_fn,
+                _mp_fn,\
                 args=(cfg,),
                 debug_single_process=0
             )
