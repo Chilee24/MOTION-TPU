@@ -619,7 +619,7 @@ class MOOSE_Encoder(nn.Module):
             flow_embs = torch.stack(flow_embs)
 
             ret = rearrange(flow_embs, 't b c w h -> b t c w h') #torch.stack(flow_embs)
-            print(ret.shape)
+            #print(ret.shape)
         return ret
     
     def visual_forward(self, inputs):
@@ -648,7 +648,7 @@ class MOOSE_Encoder(nn.Module):
             assert False, f"no VISUAL_MODEL name {self.cfg.MODEL.VISUAL_MODEL} found"
             # features.requires_grad = False
         features = rearrange(features, '(b t) p d -> b t p d', b=b, t=t) 
-        print(features.shape)   
+        #print(features.shape)
         return features
         # print([features.shape])
 
@@ -730,18 +730,18 @@ class MOOSE(nn.Module):
             visual_embeddings = rearrange(visual_embeddings, 'b t p d -> (b t) p d' ,b=b, t=t) 
             if(self.fusion_mode != 'space_only'):
                 flow_low = self.moose_encoder.motion_forward(x) # [b, t, c, w, h]
-                print(flow_low.shape)
+                #print(flow_low.shape)
                 # visual_embeddings, flow_low = x[0], x[1]
-                # print(visual_embeddings.shape, flow_low.shape)
+                # #print(visual_embeddings.shape, flow_low.shape)
                 # assert False
                 # flow_low = rearrange(flow_low, 'b t a c w h -> b (c t a) w h')
                 flow_low = rearrange(flow_low, 'b t c w h -> (b t) c w h' ,b=b, t=t) 
-                print(flow_low.shape)
-                # print(flow_low.shape, '----------------------')
+                #print(flow_low.shape)
+                # #print(flow_low.shape, '----------------------')
                 # video_embeddings = visual_embeddings
                 # motion_embeddings = self.motion_feature_extractor.forward_features(flow_low) #[2, 197, 768]
                 motion_embeddings = self.motion_feature_extractor.get_intermediate_layers(flow_low, n=3)[-1] #[2, 197, 192] = [c, patchs+1, emb_dim]
-                print(visual_embeddings.shape, motion_embeddings.shape)
+                #print(visual_embeddings.shape, motion_embeddings.shape)
 
         # print(visual_embeddings.shape, motion_embeddings.shape)
         # assert False
@@ -787,13 +787,11 @@ class MOOSE(nn.Module):
         else:
             assert False, f"No fusion_mode {self.fusion_mode} found!"
 
-        video_embeddings = rearrange(video_embeddings, '(b t) p d -> b t p d' ,b=b, t=t) 
-        print(video_embeddings.shape)
+        video_embeddings = rearrange(video_embeddings, '(b t) p d -> b t p d' ,b=b, t=t)
         video_embeddings = torch.mean(video_embeddings, dim=1)
-        last_attn = video_embeddings
-        print(last_attn.shape)
         # assert False
-        x = last_attn[:, 0, :] # Get the cls_token
+        x = video_embeddings[:, 0, :] # Get the cls_token
+        last_attn = x
         x = self.head(x)
         return x, last_attn, attn, attn_context, sim
     
