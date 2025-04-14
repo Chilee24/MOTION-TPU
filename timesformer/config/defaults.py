@@ -15,6 +15,9 @@ _C.BN = CfgNode()
 # Precise BN stats.
 _C.BN.USE_PRECISE_STATS = False
 
+# The name of the current task; e.g. "ssl"/"sl" for (self)supervised learning
+_C.TASK = ""
+
 # Number of samples use to compute precise bn.
 _C.BN.NUM_BATCHES_PRECISE = 200
 
@@ -72,8 +75,18 @@ _C.TRAIN.CHECKPOINT_INFLATE = False
 # If True, reset epochs when loading checkpoint.
 _C.TRAIN.CHECKPOINT_EPOCH_RESET = False
 
+_C.TRAIN.MIXED_PRECISION = False  # ("backbone.",)
+
 # If set, clear all layer names according to the pattern provided.
 _C.TRAIN.CHECKPOINT_CLEAR_NAME_PATTERN = ()  # ("backbone.",)
+
+_C.VIS_MASK = CfgNode()
+_C.VIS_MASK.ENABLE = False
+
+_C.MASK = CfgNode()
+
+# Whether to enable Masked style pretraining.
+_C.MASK.ENABLE = False
 
 # ---------------------------------------------------------------------------- #
 # Testing options
@@ -208,8 +221,9 @@ _C.MODEL.ARCH = "slowfast"
 
 # Multimodal fusion mode
 _C.MODEL.FUSION_MODE = "ofattention"
-_C.MODEL.VISUAL_MODEL = "dino"
-
+_C.MODEL.VISUAL_MODEL = "dinov2"
+_C.MODEL.ST_MASKING = "arrow"
+_C.MODEL.TIME_AGGREGATION = "mean"
 # Model name
 _C.MODEL.MODEL_NAME = "SlowFast"
 
@@ -220,7 +234,7 @@ _C.MODEL.NUM_CLASSES = 400
 _C.MODEL.LOSS_FUNC = "cross_entropy"
 
 # Model architectures that has one single pathway.
-_C.MODEL.SINGLE_PATHWAY_ARCH = ["c2d", "i3d", "slow", "x3d"]
+_C.MODEL.SINGLE_PATHWAY_ARCH = ["c2d", "i3d", "slow", "x3d", "vit"]
 
 # Model architectures that has multiple pathways.
 _C.MODEL.MULTI_PATHWAY_ARCH = ["slowfast"]
@@ -237,6 +251,8 @@ _C.MODEL.FC_INIT_STD = 0.01
 # Activation layer for the output head.
 _C.MODEL.HEAD_ACT = "softmax"
 
+# If True, frozen batch norm stats during training.
+_C.MODEL.FROZEN_BN = False
 
 # -----------------------------------------------------------------------------
 # SlowFast options
@@ -418,7 +434,7 @@ _C.NUM_SHARDS = 1
 _C.SHARD_ID = 0
 
 # Output basedir.
-_C.OUTPUT_DIR = "./home/hongn/TimePSFormer/log"
+_C.OUTPUT_DIR = "./tmp"
 
 # Note that non-determinism may still be present due to non-deterministic
 # operator implementations in GPU operator libraries.
@@ -490,16 +506,16 @@ _C.DETECTION.ROI_XFORM_RESOLUTION = 7
 _C.AVA = CfgNode()
 
 # Directory path of frames.
-_C.AVA.FRAME_DIR = "/mnt/fair-flash3-east/ava_trainval_frames.img/"
+_C.AVA.FRAME_DIR = "/data1/hongn/ava/frames"
 
 # Directory path for files of frame lists.
 _C.AVA.FRAME_LIST_DIR = (
-    "/mnt/vol/gfsai-flash3-east/ai-group/users/haoqifan/ava/frame_list/"
+    "/data1/hongn/ava/frame_lists"
 )
 
 # Directory path for annotation files.
 _C.AVA.ANNOTATION_DIR = (
-    "/mnt/vol/gfsai-flash3-east/ai-group/users/haoqifan/ava/frame_list/"
+    "/data1/hongn/ava/annotations"
 )
 
 # Filenames of training samples list files.
@@ -511,8 +527,8 @@ _C.AVA.TEST_LISTS = ["val.csv"]
 # Filenames of box list files for training. Note that we assume files which
 # contains predicted boxes will have a suffix "predicted_boxes" in the
 # filename.
-_C.AVA.TRAIN_GT_BOX_LISTS = ["ava_train_v2.2.csv"]
-_C.AVA.TRAIN_PREDICT_BOX_LISTS = []
+_C.AVA.TRAIN_GT_BOX_LISTS = ["ava_train_v2.1.csv"]
+_C.AVA.TRAIN_PREDICT_BOX_LISTS = ["ava_train_predicted_boxes.csv"]
 
 # Filenames of box list files for test.
 _C.AVA.TEST_PREDICT_BOX_LISTS = ["ava_val_predicted_boxes.csv"]
@@ -548,13 +564,13 @@ _C.AVA.TEST_FORCE_FLIP = False
 _C.AVA.FULL_TEST_ON_VAL = False
 
 # The name of the file to the ava label map.
-_C.AVA.LABEL_MAP_FILE = "ava_action_list_v2.2_for_activitynet_2019.pbtxt"
+_C.AVA.LABEL_MAP_FILE = "/data1/hongn/ava/annotations/ava_action_list_v2.1_for_activitynet_2018.pbtxt"#"/data1/hongn/ava/annotations/ava_action_list_v2.2_for_activitynet.pbtxt" #"ava_action_list_v2.2_for_activitynet_2019.pbtxt"
 
 # The name of the file to the ava exclusion.
-_C.AVA.EXCLUSION_FILE = "ava_val_excluded_timestamps_v2.2.csv"
+_C.AVA.EXCLUSION_FILE = "/data1/hongn/ava/annotations/ava_train_excluded_timestamps_v2.1.csv"
 
 # The name of the file to the ava groundtruth.
-_C.AVA.GROUNDTRUTH_FILE = "ava_val_v2.2.csv"
+_C.AVA.GROUNDTRUTH_FILE = "/data1/hongn/ava/annotations/ava_val_v2.1.csv"
 
 # Backend to process image, includes `pytorch` and `cv2`.
 _C.AVA.IMG_PROC_BACKEND = "cv2"
